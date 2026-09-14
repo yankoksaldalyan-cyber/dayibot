@@ -1,36 +1,28 @@
-import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
-import groq
 import os
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+import telebot
+from groq import Groq
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-groq_client = groq.Groq(api_key=GROQ_API_KEY)
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
+client = Groq(api_key=GROQ_API_KEY)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Selam dayı! Ben DayıBot. Bana ne sormak istersin?")
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Merhaba! Ben DayıBot 🤖 Groq AI ile çalışıyorum. Bana bir şey sor!")
 
-async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_mesaji = update.message.text
-    await update.message.reply_chat_action("typing")
-    
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
     try:
-        chat_completion = groq_client.chat.completions.create(
-            messages=[{"role": "user", "content": user_mesaji}],
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": message.text}],
             model="llama3-8b-8192",
         )
         cevap = chat_completion.choices[0].message.content
-        await update.message.reply_text(cevap)
+        bot.reply_to(message, cevap)
     except Exception as e:
-        await update.message.reply_text(f"Dayı bi hata oldu: {e}")
+        bot.reply_to(message, f"Bir hata oldu: {e}")
 
-if __name__ == '__main__':
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, cevapla))
-    print("Bot çalışıyor...")
-    app.run_polling()
+print("Bot çalışıyor...")
+bot.polling()
