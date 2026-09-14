@@ -10,7 +10,7 @@ client = Groq(api_key=GROQ_API_KEY)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Merhaba! Ben DayıBot 🤖 Groq AI ile çalışıyorum. Bana bir şey sor!")
+    bot.reply_to(message, "Merhaba! Ben DayıBot 🤖 Groq AI ile calisiyorum. Bana bir sey sor!")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -24,5 +24,5 @@ def handle_message(message):
     except Exception as e:
         bot.reply_to(message, f"Bir hata oldu: {e}")
 
-print("Bot çalışıyor...")
+print("Bot calisiyor...")
 bot.polling()
